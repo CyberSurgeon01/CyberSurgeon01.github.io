@@ -621,24 +621,108 @@
  </main>
 
  <script>
-    // Default configuration (using details from screenshots/provided code)
-    const defaultConfig = { /* ... */ }; // Kept as before
+    // Minimal site JS: mobile menu, contact form (local), and scrollspy/navigation highlighting
 
-    // Mobile menu functions
-    function toggleMobileMenu() { /* ... */ } // Kept as before
-    function closeMobileMenu() { /* ... */ } // Kept as before
+    // Toggle mobile menu visibility
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if (!menu) return;
+      menu.classList.toggle('hidden');
+    }
 
-    // Contact form handler (Basic Example - No actual sending)
-    function handleContactForm(event) { /* ... */ } // Kept as before
+    function closeMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if (!menu) return;
+      menu.classList.add('hidden');
+    }
 
-    // Show message helper using a temporary div
-    function showMessage(message, type) { /* ... */ } // Kept as before
+    // Show a temporary message (used for the contact form)
+    function showMessage(message, type = 'success') {
+      const el = document.getElementById('form-message');
+      if (!el) return;
+      el.textContent = message;
+      el.classList.remove('hidden', 'temp-message-success', 'temp-message-error');
+      el.classList.add('temp-message', type === 'success' ? 'temp-message-success' : 'temp-message-error');
+      el.style.display = 'block';
+      // auto-hide after 3.5s
+      setTimeout(() => {
+        el.style.display = 'none';
+        el.classList.add('hidden');
+      }, 3500);
+    }
 
-    // Navigation and scroll handling
-    document.addEventListener('DOMContentLoaded', function() { /* ... */ }); // Kept as before
+    // Basic contact form handler (no server) — validates and shows success message
+    function handleContactForm(event) {
+      event.preventDefault();
+      const form = event.target;
+      if (!form) return;
+      const name = form.querySelector('#name')?.value?.trim();
+      const email = form.querySelector('#email')?.value?.trim();
+      const subject = form.querySelector('#subject')?.value?.trim();
+      const message = form.querySelector('#message')?.value?.trim();
 
-    // Update active navigation based on scroll position
-    function updateActiveNavigation() { /* ... */ } // Kept as before
+      if (!name || !email || !subject || !message) {
+        showMessage('Please fill out all fields.', 'error');
+        return;
+      }
+
+      // Simulate successful submission
+      showMessage('Message sent — thank you! I will get back to you shortly.', 'success');
+      form.reset();
+    }
+
+    // Highlight current section link in nav
+    function updateActiveNavigation() {
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('nav a.nav-link');
+      const fromTop = window.scrollY + 90; // offset to account for fixed nav
+
+      let currentId = '';
+      sections.forEach(section => {
+        if (section.offsetTop <= fromTop) currentId = section.id;
+      });
+
+      navLinks.forEach(a => {
+        const href = a.getAttribute('href') || '';
+        if (href === '#' + currentId) {
+          a.classList.remove('nav-link-inactive');
+          a.classList.add('nav-link-active');
+        } else {
+          a.classList.remove('nav-link-active');
+          a.classList.add('nav-link-inactive');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wire up mobile menu buttons (already use onclick attributes but ensure behaviour)
+      const mobileToggle = document.querySelector('button[aria-label="Toggle mobile menu"]');
+      if (mobileToggle) mobileToggle.addEventListener('click', toggleMobileMenu);
+
+      // Smooth scrolling for internal links
+      document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+          const href = link.getAttribute('href');
+          if (!href || href === '#') return;
+          const target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // close mobile menu on navigation
+            closeMobileMenu();
+          }
+        });
+      });
+
+      // Attach form handler
+      const form = document.querySelector('form[onsubmit]');
+      if (form) form.addEventListener('submit', handleContactForm);
+
+      // initial nav highlight
+      updateActiveNavigation();
+      window.addEventListener('scroll', updateActiveNavigation);
+      window.addEventListener('resize', updateActiveNavigation);
+    });
 
  </script>
 </body>
